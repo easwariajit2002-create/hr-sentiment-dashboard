@@ -1,0 +1,7 @@
+# Streamlit Community Cloud reads this automatically.
+[server]
+maxUploadSize = 200
+enableXsrfProtection = true
+
+[theme]
+base = "light"

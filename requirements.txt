@@ -1,0 +1,13 @@
+# Streamlit Community Cloud installs this with `pip install -r requirements.txt`.
+# We pin CPU-only torch explicitly: the default `torch` wheel pulls in CUDA
+# libraries that are unnecessary here and can blow past free-tier build size /
+# memory limits. The --extra-index-url line below is a valid requirements.txt
+# directive (pip supports it), not a comment.
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+streamlit>=1.32
+pandas>=2.0
+numpy>=1.24
+openpyxl>=3.1
+transformers>=4.38,<5
+torch==2.2.2+cpu
