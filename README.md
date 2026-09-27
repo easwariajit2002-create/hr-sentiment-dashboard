@@ -100,17 +100,45 @@ tests/
 ## Using the deployed app (evaluator's steps)
 
 1. Open the URL.
-2. Upload a CSV/Excel review export in the sidebar (optionally a custom HR
-   dictionary too — the bundled one is used otherwise).
-3. The backend validates columns, cleans the data, runs contextual
-   sentiment analysis, tags HR themes, and renders the dashboard —
-   automatically, no configuration.
+2. Upload a **raw, uncleaned** CSV/Excel review export in the sidebar
+   (optionally a custom HR dictionary too — the bundled one is used
+   otherwise). No pre-cleaning in Python/Colab is needed — the backend does
+   it automatically.
+3. A **Data Quality** panel appears immediately: raw rows → duplicates
+   removed → final rows analysed, the fields it detected, which optional
+   fields were unavailable (and are therefore disabled rather than
+   guessed), and HR dictionary coverage.
 4. Filter by whichever of Location, Employee Title, Employee Status,
-   Employment Type, Tenure, Gender, HR Category, and Sentiment are present
-   in the uploaded file — filters that don't apply (commonly Gender) are
-   greyed out and explained rather than guessed at.
-5. Explore all 7 tabs, including the category → keyword → review drill-down
-   in HR Themes.
+   Employment Type, Tenure, Gender, Date, HR Category, and Sentiment are
+   present in the uploaded file — filters that don't apply (commonly
+   Gender) are greyed out and explained rather than guessed at. Every
+   filter updates every KPI, chart, and table across all 7 tabs at once.
+   **Reset Filters** in the sidebar clears every filter back to its default
+   in one click.
+5. **Executive Overview** shows KPI cards, a dynamic **Key Insights**
+   section (largest review concentration, strongest positive/negative/mixed
+   theme, overall tone, rating-vs-sentiment alignment — all computed live,
+   never hardcoded), and six Plotly charts: sentiment distribution,
+   sentiment trend over time, sentiment by location, top HR categories,
+   HR category sentiment breakdown, and rating vs. sentiment. Any chart
+   that needs a field not present in the uploaded file (e.g. no date
+   column) shows a plain explanation instead of fabricating data.
+6. **HR Themes** drills down Category → Keyword → underlying reviews, with
+   review volume, sentiment breakdown, and average sentiment score at each
+   level.
+7. **Positive Drivers** and **HR Risk / Mixed Signals** separate out major
+   positive themes, negative/high-risk themes, and genuinely mixed-sentiment
+   themes, each with representative underlying reviews. Any theme with
+   fewer than 10 underlying reviews is tagged **"Small sample — interpret
+   cautiously"** rather than stated as a firm finding.
+
+### Verified with a synthetic "messy raw" file during development
+To prove step 2 actually works without a separate cleaning script, I ran a
+version of the Bosch export with shuffled/renamed/mixed-case columns,
+whitespace-mangled and inconsistently-cased text, injected null tokens
+("N/A", "Not Provided"), and 15 duplicated rows, straight through the app:
+it reported **215 raw rows → 15 duplicates removed → 200 final rows**
+automatically, with correctly detected columns and no exceptions.
 
 ## Calibrating against your Colab analysis
 
@@ -209,6 +237,24 @@ sentiment label above. Reviews matching nothing get
 * A keyword flagged in "HR Risk / Mixed Signals" is explicitly labeled
   **Low-volume signal** rather than a stated organizational problem when
   its sample size is small.
+
+## What changed in this upgrade (vs. the prior version)
+
+Only `app.py` and `requirements.txt` changed. Every pipeline module —
+`schema.py`, `clean.py`, `sentiment.py`, `hr_dictionary.py`, `aggregate.py`,
+`pipeline.py`, `benchmark.py` — is byte-for-byte the same sentiment
+methodology, HR dictionary matching, cleaning logic, schema detection, and
+benchmark tool as before. `app.py` was rebuilt to add:
+- the Data Quality panel,
+- a keyed sidebar filter system with a working Reset Filters button,
+- six Plotly charts on Executive Overview,
+- a dynamic Key Insights section,
+- richer HR Themes / Positive Drivers / HR Risk tabs with representative
+  reviews and small-sample flags,
+- corporate CSS styling.
+
+`requirements.txt` now pins `torch==2.14.0` (as requested) and adds
+`plotly>=5.20`.
 
 ## Local development (optional, not required for the evaluator)
 
